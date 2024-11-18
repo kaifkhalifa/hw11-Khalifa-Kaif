@@ -82,9 +82,18 @@
 (define Not-Fn-Error (not-fn-error))
 
 ;; Error Checking Functions
-(struct exn:fail:syntax:cs450 exn:fail:syntax
-  (origin) #:transparent)
-(check-equal? (exn:fail:syntax:cs450? (exn:fail:syntax:cs450 "Error" 'test)) #true)
+(struct exn:fail:syntax:cs450 (msg origin cont-mark-set) #:transparent)
+
+;; Define the constructor manually
+(define (make-exn:fail:syntax:cs450 msg origin cont-mark-set)
+  (exn:fail:syntax:cs450 msg origin cont-mark-set))
+
+(check-equal?
+ (exn:fail:syntax:cs450? 
+  (make-exn:fail:syntax:cs450 "Error message" 'test (current-continuation-marks)))
+ #true)
+
+
 
 (define (UNDEFINED-ERROR? r)
   (undefined-error? r))
@@ -112,7 +121,9 @@
      (bind-ast var (parse e1) (parse e2))]
     [`(,fn . ,args) 
      (call (parse fn) (map parse args))]
-    [_ (raise (exn:fail:syntax:cs450 "Invalid expression" 'parse))]))
+    [_ (raise (exn:fail:syntax:cs450 "Invalid expression"
+                                     (current-continuation-marks)
+                                     'parse))]))
 (check-equal? (parse '(bind x 1 x)) (bind-ast 'x (num 1) (vari 'x)))
 
 ;; Environment Functions
