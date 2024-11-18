@@ -94,7 +94,6 @@
  #true)
 
 
-
 (define (UNDEFINED-ERROR? r)
   (undefined-error? r))
 (check-equal? (UNDEFINED-ERROR? Undefined-Error) #true)
