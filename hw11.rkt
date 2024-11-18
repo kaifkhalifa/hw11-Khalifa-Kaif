@@ -139,24 +139,32 @@
 (check-equal? (extend-env 'x 5 '()) '((x 5)))
 
 ;; run : CS450LangAST Environment -> CS450LangResult
+;; run : CS450LangAST Environment -> CS450LangResult
 (define/contract (run ast env)
   (-> any/c list? any/c)
   (match ast
-    [(num n) n]
-    [(vari v) (lookup v env)]
-    [(add x y) (+ (run x env) (run y env))]
-    [(sub x y) (if (and (number? (run x env)) (number? (run y env)))
-                   (- (run x env) (run y env))
-                   NaN)]
+    [(num n) n] 
+    [(vari v) (lookup v env)]  
+    [(add x y) 
+     (let ([x-val (run x env)]
+           [y-val (run y env)])
+       (if (and (number? x-val) (number? y-val))
+           (+ x-val y-val)
+           NaN))] 
+    [(sub x y) 
+     (let ([x-val (run x env)]
+           [y-val (run y env)])
+       (if (and (number? x-val) (number? y-val))
+           (- x-val y-val)
+           NaN))]
     [(bind-ast var expr body)
      (let ([value (run expr env)])
-       (run body (extend-env var value env)))]
+       (run body (extend-env var value env)))] 
     [(call fn args) 
-     (let ([fn-val (run fn env)]
-           [arg-vals (map (λ (arg) (run arg env)) args)])
-       (match fn-val
-         [`+ (apply + arg-vals)]
-         [`- (apply - arg-vals)]
-         [_ Not-Fn-Error]))]
-    [_ NaN]))
+     (let ([fn-val (run fn env)] 
+           [arg-vals (map (λ (arg) (run arg env)) args)]) 
+       (cond
+         [(procedure? fn-val) (apply fn-val arg-vals)] 
+         [else Not-Fn-Error]))] 
+    [_ NaN]))  
 (check-equal? (run (bind-ast 'x (num 5) (vari 'x)) '()) 5)
