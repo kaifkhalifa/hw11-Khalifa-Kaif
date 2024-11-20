@@ -53,8 +53,14 @@
     [(equal? var (first (first env))) (second (first env))]
     [else (lookup var (rest env))]))
 
+;; Examples for `lookup`
+(check-equal? (lookup 'z '((x 42) (z 99))) 99) 
+
 (define (extend-env var val env)
   (cons (list var val) env))
+
+;; Examples for `extend-env`
+(check-equal? (extend-env 'z 99 '((x 42))) '((z 99) (x 42)))
 
 ;; Define initial environment for arithmetic operations
 (define initial-env
@@ -63,7 +69,14 @@
 
 ;; Error Checking Functions
 (define (UNDEFINED-ERROR? r) (undefined-error? r))
+
+;; Examples for `UNDEFINED-ERROR?`
+(check-equal? (UNDEFINED-ERROR? Undefined-Error) #true) 
+
 (define (NOT-FN-ERROR? r) (not-fn-error? r))
+
+;; Examples for `NOT-FN-ERROR?`
+(check-equal? (NOT-FN-ERROR? Not-Fn-Error) #true) 
 
 ;; Define custom syntax error for CS450Lang
 (struct exn:fail:syntax:cs450 (msg origin cont-mark-set) #:transparent)
@@ -72,19 +85,28 @@
 (define (make-exn:fail:syntax:cs450 msg origin)
   (exn:fail:syntax:cs450 msg origin (current-continuation-marks)))
 
+;; Examples for `make-exn:fail:syntax:cs450`
+(check-equal? 
+ (exn:fail:syntax:cs450? (make-exn:fail:syntax:cs450 "Test" 'parse)) 
+ #true) 
+
 
 ;; parse : CS450LangExpr -> CS450LangAST
 (define (parse expr)
   (match expr
-    [(? number?) (num expr)]              ; Parse numbers
-    [(? symbol?) (vari expr)]             ; Parse variables
-    [`(bind ,var ,e1 ,e2)                 ; Parse `bind`
+    [(? number?) (num expr)]             
+    [(? symbol?) (vari expr)]         
+    [`(bind ,var ,e1 ,e2)                
      (bind-ast var (parse e1) (parse e2))]
-    [`(,fn . ,args)                       ; Parse function calls
+    [`(,fn . ,args)                      
      (if (and (symbol? fn) (member fn '(+ - bind)))
          (call (vari fn) (map parse args))
          (raise (make-exn:fail:syntax:cs450 "Invalid function call" 'parse)))]
-    [_ (raise (make-exn:fail:syntax:cs450 "Invalid expression" 'parse))])) ; Catch-all for invalid expressions
+    [_ (raise (make-exn:fail:syntax:cs450 "Invalid expression" 'parse))])) 
+
+;; Examples for `parse`
+(check-equal? (parse '(+ 10 (+ 5 3))) 
+              (call (vari '+) (list (num 10) (call (vari '+) (list (num 5) (num 3)))))) 
 
 
 ;; run : CS450LangAST Env -> CS450LangResult
@@ -103,9 +125,8 @@
          [else Not-Fn-Error]))]
     [_ NaN]))
 
-;; Examples 
-(check-equal? (parse '(bind x 1 x)) (bind-ast 'x (num 1) (vari 'x)))
-(check-equal? (lookup 'x (list (list 'x 5))) 5)
-(check-equal? (extend-env 'x 5 '()) '((x 5)))
-(check-equal? (run (bind-ast 'x (num 5) (vari 'x)) '()) 5)
-(check-equal? (run (call (vari '+) (list (num 4) (num 6))) initial-env) 10)
+;; Examples for `run`
+(check-equal? (run (call (vari '+) (list (num 10) (num 20))) initial-env) 30)
+
+;; Examples for `initial-env`
+(check-equal? (lookup '+ initial-env) +)
