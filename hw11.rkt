@@ -26,7 +26,7 @@
       (string? expr)
       (eq? expr 'TRUE)
       (eq? expr 'FALSE)
-      (symbol? expr)  ;; Variable
+      (symbol? expr)
       (and (list? expr)
            (match expr
              [`(+ ,x ,y) (and (CS450LangExpr? x) (CS450LangExpr? y))]
@@ -40,6 +40,7 @@
               (and (symbol? var) (CS450LangExpr? e1) (CS450LangExpr? e2))]
              [(list fn args ...) (and (CS450LangExpr? fn) (andmap CS450LangExpr? args))]
              [_ #false]))))
+;; example
 (check-equal? (CS450LangExpr? '(+ 1 2)) #true)
 
 ;; A CS450LangAST (AST) is one of:
@@ -87,19 +88,20 @@
 ;; Define the constructor manually
 (define (make-exn:fail:syntax:cs450 msg origin cont-mark-set)
   (exn:fail:syntax:cs450 msg origin cont-mark-set))
-
+;;example
 (check-equal?
  (exn:fail:syntax:cs450? 
   (make-exn:fail:syntax:cs450 "Error message" 'test (current-continuation-marks)))
  #true)
 
-
 (define (UNDEFINED-ERROR? r)
   (undefined-error? r))
+;; example
 (check-equal? (UNDEFINED-ERROR? Undefined-Error) #true)
 
 (define (NOT-FN-ERROR? r)
   (not-fn-error? r))
+;; example
 (check-equal? (NOT-FN-ERROR? Not-Fn-Error) #true)
 
 ;; parse : CS450LangExpr -> CS450LangAST
@@ -123,6 +125,7 @@
     [_ (raise (exn:fail:syntax:cs450 "Invalid expression"
                                      (current-continuation-marks)
                                      'parse))]))
+;; example
 (check-equal? (parse '(bind x 1 x)) (bind-ast 'x (num 1) (vari 'x)))
 
 ;; Environment Functions
@@ -136,7 +139,13 @@
 
 (define (extend-env var val env)
   (cons (list var val) env))
+;; example
 (check-equal? (extend-env 'x 5 '()) '((x 5)))
+
+;; Define initial environment for the run function
+(define initial-env
+  (list (list '+ +)
+        (list '- -)))
 
 ;; run : CS450LangAST Environment -> CS450LangResult
 (define/contract (run ast env)
@@ -165,5 +174,8 @@
        (cond
          [(procedure? fn-val) (apply fn-val arg-vals)] 
          [else Not-Fn-Error]))] 
-    [_ NaN]))  
+    [_ NaN]))
+;; example
 (check-equal? (run (bind-ast 'x (num 5) (vari 'x)) '()) 5)
+;; Tests for run with initial-env
+(check-equal? (run (call (vari '+) (list (num 4) (num 6))) initial-env) 10)

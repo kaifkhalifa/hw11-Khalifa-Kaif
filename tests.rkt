@@ -47,6 +47,11 @@
    (check-equal? (NOT-FN-ERROR? Not-Fn-Error) #true)
    (check-equal? (NOT-FN-ERROR? NaN) #false)
 
+   ;; Tests for initial-env
+   (check-equal? (lookup '+ initial-env) +) 
+   (check-equal? (lookup '- initial-env) -) 
+
+
    ;; Tests for exn:fail:syntax:cs450?
    (check-equal? 
     (exn:fail:syntax:cs450? 
@@ -57,6 +62,8 @@
      (make-exn:fail:syntax:cs450 "Another Error" 'test (current-continuation-marks))) 
     #true)
    ))
+
+
 
 ;; Run tests in verbose mode
 (module+ main
