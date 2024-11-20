@@ -139,7 +139,6 @@
 (check-equal? (extend-env 'x 5 '()) '((x 5)))
 
 ;; run : CS450LangAST Environment -> CS450LangResult
-;; run : CS450LangAST Environment -> CS450LangResult
 (define/contract (run ast env)
   (-> any/c list? any/c)
   (match ast
