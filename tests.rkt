@@ -51,19 +51,16 @@
    (check-equal? (lookup '+ initial-env) +) 
    (check-equal? (lookup '- initial-env) -) 
 
-
    ;; Tests for exn:fail:syntax:cs450?
    (check-equal? 
     (exn:fail:syntax:cs450? 
-     (make-exn:fail:syntax:cs450 "Error" 'test (current-continuation-marks))) 
+     (make-exn:fail:syntax:cs450 "Error" 'test)) 
     #true)
    (check-equal? 
     (exn:fail:syntax:cs450? 
-     (make-exn:fail:syntax:cs450 "Another Error" 'test (current-continuation-marks))) 
+     (make-exn:fail:syntax:cs450 "Another Error" 'test)) 
     #true)
    ))
-
-
 
 ;; Run tests in verbose mode
 (module+ main
@@ -72,4 +69,5 @@
 
 ;; Provide the test suite
 (provide TESTS)
+
 

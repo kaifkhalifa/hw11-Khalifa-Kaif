@@ -19,8 +19,6 @@
 ;; - (cons Expr List<Expr>)
 ;; Interpretation: Represents surface-level syntax of CS450Lang programs.
 
-;; CS450LangExpr? : Any -> Boolean
-;; Returns true if a value is a valid CS450LangExpr.
 (define (CS450LangExpr? expr)
   (or (number? expr)
       (string? expr)
@@ -83,22 +81,26 @@
 (define Not-Fn-Error (not-fn-error))
 
 ;; Error Checking Functions
+
+;; Define custom syntax error for CS450Lang
 (struct exn:fail:syntax:cs450 (msg origin cont-mark-set) #:transparent)
 
-;; Define the constructor manually
-(define (make-exn:fail:syntax:cs450 msg origin cont-mark-set)
-  (exn:fail:syntax:cs450 msg origin cont-mark-set))
-;;example
+;; Constructor for exn:fail:syntax:cs450
+(define (make-exn:fail:syntax:cs450 msg origin)
+  (exn:fail:syntax:cs450 msg origin (current-continuation-marks)))
+;; example
 (check-equal?
  (exn:fail:syntax:cs450? 
-  (make-exn:fail:syntax:cs450 "Error message" 'test (current-continuation-marks)))
+  (make-exn:fail:syntax:cs450 "Error message" 'test))
  #true)
 
+;; Predicate for undefined error
 (define (UNDEFINED-ERROR? r)
   (undefined-error? r))
 ;; example
 (check-equal? (UNDEFINED-ERROR? Undefined-Error) #true)
 
+;; Predicate for not-function error
 (define (NOT-FN-ERROR? r)
   (not-fn-error? r))
 ;; example
@@ -177,5 +179,5 @@
     [_ NaN]))
 ;; example
 (check-equal? (run (bind-ast 'x (num 5) (vari 'x)) '()) 5)
-;; Tests for run with initial-env
+;; example for run with initial-env
 (check-equal? (run (call (vari '+) (list (num 4) (num 6))) initial-env) 10)
