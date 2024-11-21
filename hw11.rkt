@@ -109,11 +109,14 @@
     [(? symbol?) (vari expr)]         
     [`(bind ,var ,e1 ,e2)                
      (bind-ast var (parse e1) (parse e2))]
-    [`(,fn . ,args)                      
-     (if (and (symbol? fn) (member fn '(+ - bind)))
-         (call (vari fn) (map parse args))
+    [`(,fn . ,args) 
+     (if (symbol? fn)
+         (if (member fn '(+ -))  ; Valid arithmetic functions
+             (call (vari fn) (map parse args))
+             (raise (make-exn:fail:syntax:cs450 "Invalid function call" 'parse)))
          (raise (make-exn:fail:syntax:cs450 "Invalid function call" 'parse)))]
-    [_ (raise (make-exn:fail:syntax:cs450 "Invalid expression" 'parse))])) 
+    [_ (raise (make-exn:fail:syntax:cs450 "Invalid expression" 'parse))]))
+
 
 ;; Examples for `parse`
 (check-equal? (parse '(+ 10 (+ 5 3))) 

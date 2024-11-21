@@ -16,8 +16,8 @@
    (check-equal? (parse '(- 10 5)) 
                  (call (vari '-) (list (num 10) (num 5))))
    (check-exn
-    (λ (exn) (exn:fail:syntax:cs450? exn))  ; Validate the exception type
-    (λ () (parse '(invalid 1 2))))          ; Call `parse` with invalid input
+    (λ (exn) (exn:fail:syntax:cs450? exn)) 
+    (λ () (parse '(invalid 1 2))))         
 
 
    ;; Tests for run
