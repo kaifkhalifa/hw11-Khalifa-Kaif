@@ -19,13 +19,28 @@
     (λ (exn) (exn:fail:syntax:cs450? exn)) 
     (λ () (parse '(invalid 1 2))))         
 
-
    ;; Tests for run
    (check-equal? (run (num 10) '()) 10)
    (check-equal? (run (bind-ast 'x (num 5) (vari 'x)) '()) 5)
    (check-equal? (run (call (vari '+) (list (num 4) (num 6))) initial-env) 10)
    (check-equal? (run (call (vari '-) (list (num 10) (num 3))) initial-env) 7)
    (check-equal? (run (vari 'y) '()) Undefined-Error)
+   (check-equal? (run (bind-ast 'x (num 5)
+                                (bind-ast 'y (call (vari '+) (list (vari 'x) (num 10)))
+                                          (call (vari '+) (list (vari 'x) (vari 'y)))))
+                      initial-env)
+                 20)
+   (check-equal? (run (bind-ast 'x (num 3)
+                                (bind-ast 'y (call (vari '+) (list (vari 'x) (num 4)))
+                                          (bind-ast 'z (call (vari '-) (list (vari 'y) (vari 'x)))
+                                                    (call (vari '+) (list (vari 'z) (vari 'y))))))
+                      initial-env)
+                 11)
+   (check-equal? (run (bind-ast 'x (num 20)
+                                (bind-ast 'x (call (vari '+) (list (vari 'x) (num 30)))
+                                          (vari 'x)))
+                      initial-env)
+                 50)
 
    ;; Tests for lookup
    (check-equal? (lookup 'a (list (list 'a 100))) 100)
