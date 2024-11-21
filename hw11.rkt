@@ -116,10 +116,8 @@
     [(num n) n]
     [(vari v) (lookup v env)]
     [(bind-ast var expr body)
-     ;; Add the variable to the extended environment and preserve initial-env
-     (let* ([value (run expr env)]
-            [new-env (extend-env var value env)])
-       (run body (append new-env initial-env)))] ; Preserve initial-env
+     (let ([value (run expr env)])
+       (run body (extend-env var value env)))]
     [(call fn args)
      (let ([fn-val (run fn env)]
            [arg-vals (map (λ (arg) (run arg env)) args)])
@@ -127,8 +125,6 @@
          [(procedure? fn-val) (apply fn-val arg-vals)]
          [else Not-Fn-Error]))]
     [_ NaN]))
-
-
 
 ;; Examples for `run`
 (check-equal? (run (call (vari '+) (list (num 10) (num 20))) initial-env) 30)

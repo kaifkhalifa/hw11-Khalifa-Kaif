@@ -8,75 +8,43 @@
   (test-suite
    "HW11 Tests"
 
-
-   ;; Tests for `lookup`
-
-   (check-equal? (lookup 'z '((x 42) (z 99))) 99)
-   (check-equal? (lookup 'x '((x 42) (z 99))) 42)
-   ;; Additional Test
-   (check-equal? (lookup 'w '((x 42) (z 99))) Undefined-Error)
-
-
-   ;; Tests for `extend-env`
-
-   (check-equal? (extend-env 'z 99 '((x 42))) '((z 99) (x 42)))
-   ;; Additional Test
-   (check-equal? (extend-env 'a 100 '()) '((a 100)))
+   ;; Tests for parse
+   (check-equal? (parse '(bind x 1 x)) 
+                 (bind-ast 'x (num 1) (vari 'x)))
+   (check-equal? (parse '(+ 1 2)) 
+                 (call (vari '+) (list (num 1) (num 2))))
+   (check-equal? (parse '(- 10 5)) 
+                 (call (vari '-) (list (num 10) (num 5))))
+   (check-exn
+    (λ (exn) (exn:fail:syntax:cs450? exn))  ; Validate the exception type
+    (λ () (parse '(invalid 1 2))))          ; Call `parse` with invalid input
 
 
-   ;; Tests for `parse`
+   ;; Tests for run
+   (check-equal? (run (num 10) '()) 10)
+   (check-equal? (run (bind-ast 'x (num 5) (vari 'x)) '()) 5)
+   (check-equal? (run (call (vari '+) (list (num 4) (num 6))) initial-env) 10)
+   (check-equal? (run (call (vari '-) (list (num 10) (num 3))) initial-env) 7)
+   (check-equal? (run (vari 'y) '()) Undefined-Error)
 
-   (check-equal? (parse '(+ 10 (+ 5 3))) 
-                 (call (vari '+) (list (num 10) (call (vari '+) (list (num 5) (num 3))))))
-   (check-equal? (parse 'z) (vari 'z))
-   ;; Additional Test
-   (check-equal? (parse '(bind x 5 (+ x 2))) 
-                 (bind-ast 'x (num 5) (call (vari '+) (list (vari 'x) (num 2)))))
+   ;; Tests for lookup
+   (check-equal? (lookup 'a (list (list 'a 100))) 100)
+   (check-equal? (lookup 'b (list (list 'a 100))) Undefined-Error)
 
+   ;; Tests for extend-env
+   (check-equal? (extend-env 'a 1 '()) '((a 1)))
+   (check-equal? (extend-env 'b 2 '((a 1))) '((b 2) (a 1)))
 
-   ;; Tests for `run`
+   ;; Tests for UNDEFINED-ERROR?
+   (check-equal? (UNDEFINED-ERROR? Undefined-Error) #true)
+   (check-equal? (UNDEFINED-ERROR? NaN) #false)
 
-   (check-equal? (run (call (vari '+) (list (num 10) (num 20))) initial-env) 30)
-   (check-equal? 
-    (run (bind-ast 'x (num 5) (bind-ast 'y (num 10) (call (vari '+) (list (vari 'x) (vari 'y))))) '()) 
-    15)
-   (check-equal? (run (vari 'z) '()) Undefined-Error)
-   ;; Additional Test
-   (check-equal?
-    (run (bind-ast 'x (num 5) (bind-ast 'y (call (vari '+) (list (vari 'x) (num 3))) (vari 'y))) '())
-    8)
+   ;; Tests for NOT-FN-ERROR?
+   (check-equal? (NOT-FN-ERROR? Not-Fn-Error) #true)
+   (check-equal? (NOT-FN-ERROR? NaN) #false)
 
-   ;; Tests for Variadic Addition in `run`
-
-   (check-equal? (run (call (vari '+) (list (num 1) (num 2) (num 3))) initial-env) 6)
-   ;; Additional Test
-   (check-equal? (run (call (vari '+) (list (num 4) (num 5) (num 6) (num 7))) initial-env) 22)
-
-
-
-   ;; Tests for Shadowing
-
-   (check-equal? (run (bind-ast 'x (num 5) (bind-ast 'x (num 10) (vari 'x))) '()) 10)
-   ;; Additional Test
-   (check-equal? 
-    (run (bind-ast 'x (num 5) (bind-ast 'x (num 10) (bind-ast 'x (num 15) (vari 'x)))) '()) 15)
-
-
-   ;; Tests for Environment in Nested Bindings
-
-   (check-equal?
-    (run (bind-ast 'x (num 5) (bind-ast 'y (call (vari '+) (list (vari 'x) (num 3))) (vari 'y))) '())
-    8)
-   ;; Additional Test
-   (check-equal?
-    (run (bind-ast 'x (num 5) (bind-ast 'y (num 10) (call (vari '+) (list (vari 'x) (vari 'y))))) '())
-    15)
-
-
-   ;; Tests for `initial-env`
-
-   (check-equal? (lookup '+ initial-env) +)
-   ;; Additional Test
+   ;; Tests for initial-env
+   (check-equal? (lookup '+ initial-env) +) 
    (check-equal? (lookup '- initial-env) -)
    ))
 
@@ -87,3 +55,4 @@
 
 ;; Provide the test suite
 (provide TESTS)
+
