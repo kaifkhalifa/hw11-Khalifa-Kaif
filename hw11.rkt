@@ -1,7 +1,6 @@
-
 #lang racket
 
-(provide (all-defined-out))
+(provide (all-defined-out)) ;; Ensures that all required identifiers, including NaN?, are provided.
 
 (require rackunit)
 
@@ -46,6 +45,17 @@
 (define NaN (nan))
 (define Undefined-Error (undefined-error))
 (define Not-Fn-Error (not-fn-error))
+
+;; Predicate for NaN
+;; NaN? : Any -> Boolean
+;; Purpose: Determines if a given value is NaN.
+;; Example: (NaN? NaN) => #true
+(define (NaN? value)
+  (nan? value))
+
+;; Examples for `NaN?`
+(check-equal? (NaN? NaN) #true)
+(check-equal? (NaN? 42) #false)
 
 ;; Environment Functions
 (define (lookup var env)
