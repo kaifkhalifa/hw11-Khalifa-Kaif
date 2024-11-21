@@ -62,6 +62,7 @@
 ;; Examples for `extend-env`
 (check-equal? (extend-env 'z 99 '((x 42))) '((z 99) (x 42)))
 
+
 ;; Define initial environment for arithmetic operations
 (define initial-env
   (list (list '+ +)
@@ -94,19 +95,17 @@
 ;; parse : CS450LangExpr -> CS450LangAST
 (define (parse expr)
   (match expr
-    [(? number?) (num expr)]             
-    [(? symbol?) (vari expr)]         
-    [`(bind ,var ,e1 ,e2)                
-     (bind-ast var (parse e1) (parse e2))]
-    [`(,fn . ,args)                      
-     (if (and (symbol? fn) (member fn '(+ - bind)))
-         (call (vari fn) (map parse args))
-         (raise (make-exn:fail:syntax:cs450 "Invalid function call" 'parse)))]
-    [_ (raise (make-exn:fail:syntax:cs450 "Invalid expression" 'parse))])) 
+    [(? number?) (num expr)]
+    [(? symbol?) (vari expr)]
+    [`(bind ,var ,e1 ,e2) (bind-ast var (parse e1) (parse e2))]
+    [`(,fn . ,args) (call (vari fn) (map parse args))]
+    [_ (raise (exn:fail:syntax:cs450 "Invalid expression" 'parse))]))
 
 ;; Examples for `parse`
 (check-equal? (parse '(+ 10 (+ 5 3))) 
               (call (vari '+) (list (num 10) (call (vari '+) (list (num 5) (num 3)))))) 
+;; Unbound variable parse test
+(check-equal? (parse 'z) (vari 'z))
 
 
 ;; run : CS450LangAST Env -> CS450LangResult
@@ -117,6 +116,9 @@
     [(bind-ast var expr body)
      (let ([value (run expr env)])
        (run body (extend-env var value env)))]
+    [(call (vari '+) args)
+     (let ([vals (map (λ (arg) (run arg env)) args)])
+       (if (andmap number? vals) (apply + vals) NaN))]
     [(call fn args)
      (let ([fn-val (run fn env)]
            [arg-vals (map (λ (arg) (run arg env)) args)])
@@ -125,8 +127,34 @@
          [else Not-Fn-Error]))]
     [_ NaN]))
 
+
 ;; Examples for `run`
 (check-equal? (run (call (vari '+) (list (num 10) (num 20))) initial-env) 30)
+;; Nested bind test
+(check-equal?
+ (run (bind-ast 'x (num 5) (bind-ast 'y (num 10) (call (vari '+) (list (vari 'x) (vari 'y)))))
+      '())
+ 15)
+;; Undefined variable test
+(check-equal? (run (vari 'z) '()) Undefined-Error)
+;; Self-referencing bind test
+(check-equal?
+ (run (bind-ast 'x (call (vari '+) (list (num 2) (vari 'x))) (vari 'x))
+      '((x 10)))
+ 12)
+;; Variadic addition test
+(check-equal? (run (call (vari '+) (list (num 1) (num 2) (num 3))) initial-env) 6)
+
+
 
 ;; Examples for `initial-env`
 (check-equal? (lookup '+ initial-env) +)
+;; Shadowing test
+(check-equal?
+ (run (bind-ast 'x (num 5) (bind-ast 'x (num 10) (vari 'x))) '())
+ 10)
+;; Nested bind referencing outer scope
+(check-equal?
+ (run (bind-ast 'x (num 5) (bind-ast 'y (call (vari '+) (list (vari 'x) (num 3))) (vari 'y))) '())
+ 8)
+
