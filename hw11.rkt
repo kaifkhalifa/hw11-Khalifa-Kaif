@@ -1,14 +1,10 @@
 #lang racket
 
-(provide (all-defined-out)) ;; Ensures that all required identifiers, including NaN?, are provided.
+(provide (all-defined-out)) 
 
 (require rackunit)
 
 ;; Data Definitions
-
-;; A Variable (Var) is a Symbol
-
-;; An Environment (Env) is a List<(list Var Result)>
 
 ;; A 450LangExpr (Expr) is one of:
 ;; - Number
@@ -111,7 +107,7 @@
      (bind-ast var (parse e1) (parse e2))]
     [`(,fn . ,args) 
      (if (symbol? fn)
-         (if (member fn '(+ -))  ; Valid arithmetic functions
+         (if (member fn '(+ -)) 
              (call (vari fn) (map parse args))
              (raise (make-exn:fail:syntax:cs450 "Invalid function call" 'parse)))
          (raise (make-exn:fail:syntax:cs450 "Invalid function call" 'parse)))]
